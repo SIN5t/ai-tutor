@@ -1,0 +1,1 @@
+curl -X POST -H "Content-Type: application/json" -d "{\"text\":\"你是什么模型\"}" http://localhost:8000/api/summary

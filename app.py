@@ -1,7 +1,10 @@
 import uvicorn
 import os
 
+from backend.utils.log_config import init_log_config
+
 if __name__ == "__main__":
+    init_log_config()
     uvicorn.run(
         "backend.main:app",
         host="127.0.0.1",

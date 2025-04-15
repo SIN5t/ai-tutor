@@ -6,6 +6,7 @@ import Mermaid from 'mermaid';
 import './App.css';
 import jsMind from 'jsmind';
 import 'jsmind/style/jsmind.css';
+import { useMemo } from 'react';
 
 const { TextArea } = Input;
 
@@ -115,13 +116,23 @@ function App() {
     const jmInstanceRef = useRef(null);
     const [uploadedFiles, setUploadedFiles] = useState([]);  // 存储上传的文件列表
     const [selectedFiles, setSelectedFiles] = useState([]);  // 存储选中的文件
-    const [currentFile, setCurrentFile] = useState(null);    // 当前预览的文件
     const [pageSize, setPageSize] = useState(5); // 默认每页显示5个文件
     const [currentPage, setCurrentPage] = useState(1); // 添加当前页码状态
     const [abortTranscribing, setAbortTranscribing] = useState(false); // 添加停止转录状态
     const [mindmapLoadingFiles, setMindmapLoadingFiles] = useState(new Set());
     const [summaryLoadingFiles, setSummaryLoadingFiles] = useState(new Set());
     const [detailedSummaryLoadingFiles, setDetailedSummaryLoadingFiles] = useState(new Set());
+    const [currentFileId, setCurrentFileId] = useState(null);  // 存储当前文件的 ID
+    const currentFile = useMemo(
+        () => uploadedFiles.find(f => f.id === currentFileId) || null, // 找不到时返回 null
+        [uploadedFiles, currentFileId]
+    );
+    const [setCurrentFile] = useState(null);    // 当前预览的文件
+
+
+    const handleSelectFile = (fileId) => {
+        setCurrentFileId(fileId);  // 更新当前选中的文件 ID
+    };
 
     // 打印 uploadedFiles 的变化
     useEffect(() => {
@@ -191,7 +202,7 @@ function App() {
 
         // 如果是第一个文件，动设置为当前预览文件
         if (uploadedFiles.length === 0) {
-            setCurrentFile(newFile);
+            handleSelectFile(newFile.id);
             setMediaUrl({ url, type: isVideo ? 'video' : 'audio' });
         }
 
@@ -285,7 +296,7 @@ function App() {
             const remainingFiles = uploadedFiles.filter(file => file.id !== fileId);
             const nextFile = remainingFiles[0];
             if (nextFile) {
-                setCurrentFile(nextFile);
+                handleSelectFile(nextFile.id);
                 setMediaUrl({ url: nextFile.url, type: nextFile.type });
             } else {
                 setCurrentFile(null);
@@ -294,12 +305,13 @@ function App() {
         }
     };
 
+
     // 修改文件预览函数
     const handleFilePreview = (file) => {
-        const currentFileRef = uploadedFiles.find(f => f.id === file.id);
-        setCurrentFile(currentFileRef);
+        handleSelectFile(file.id)
         setMediaUrl({ url: file.url, type: file.type });
     };
+
 
     // 修改批量转录函数
     const handleBatchTranscribe = async () => {
@@ -407,11 +419,12 @@ function App() {
                         });
 
                         if (currentFile?.id === fileId) {
-                            setCurrentFile(prev => ({
-                                ...prev,
-                                status: 'done',
-                                transcription: data.transcription
-                            }));
+                            // setCurrentFile(prev => ({
+                            //     ...prev,
+                            //     status: 'done',
+                            //     transcription: data.transcription
+                            // }));
+                            handleSelectFile(fileId)
                         }
                     }
                 } catch (error) {
@@ -460,6 +473,7 @@ function App() {
 
             // 找到文件在 uploadedFiles 中的引用
             const fileRef = uploadedFiles.find(f => f.id === fileId);
+            console.log("fileRef:",fileRef)
             if (!fileRef) return;
 
             // 初始化内容
@@ -484,14 +498,21 @@ function App() {
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
-
+            
                 const chunk = decoder.decode(value, { stream: true });
                 summaryText += chunk;
-
-                // 直接更新文件引用中的内容
-                fileRef.summary = summaryText;
-                // 强制更新 uploadedFiles 以触发重渲染
-                setUploadedFiles([...uploadedFiles]);
+            
+                // 使用函数式更新确保获取最新状态
+                setUploadedFiles(prevFiles => {
+                    return prevFiles.map(f => {
+                        if (f.id === fileId) {
+                            // 创建新对象触发更新
+                            return { ...f, summary: summaryText };
+                        }
+                        return f;
+                    });
+                });
+                //setCurrentFile(prev => ({ ...prev, summary: summaryText }));
             }
 
         } catch (error) {
@@ -978,7 +999,8 @@ function App() {
             const remainingFiles = uploadedFiles.filter(file => !selectedFiles.includes(file.id));
             const nextFile = remainingFiles[0];
             if (nextFile) {
-                setCurrentFile(nextFile);
+                //setCurrentFile(nextFile);
+                handleSelectFile(nextFile.id)
                 setMediaUrl({ url: nextFile.url, type: nextFile.type });
             } else {
                 setCurrentFile(null);
@@ -1086,9 +1108,9 @@ function App() {
                             {summaryLoadingFiles.has(currentFile?.id) ? '生成中...' : '生成总结'}
                         </Button>
                         <Button
-                            onClick={() => handleExportSummary(currentFile?.summary)}
+                            onClick={() => handleExportSummary(uploadedFiles.find(f => f.id === currentFile.id)?.summary)}
                             icon={<DownloadOutlined />}
-                            disabled={!currentFile?.summary}
+                            disabled={!uploadedFiles.find(f => f.id === currentFile.id)?.summary}
                         >
                             导出总结
                         </Button>
@@ -1108,7 +1130,8 @@ function App() {
                     ) : (
                         <SummaryContent
                             fileId={currentFile.id}
-                            content={currentFile.summary}
+                            // 直接从 uploadedFiles 获取最新数据
+                            content={uploadedFiles.find(f => f.id === currentFile.id)?.summary || ""}
                             isLoading={summaryLoadingFiles.has(currentFile.id)}
                         />
                     )}
@@ -1403,7 +1426,7 @@ function App() {
         <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
             <div className="app-header" style={{ background: '#fff' }}>
                 <div className="title">
-                    <h1 style={{ color: '#000' }}>VideoChat：一键总结视频与音频内容｜帮助解读的 AI 助手</h1>
+                    <h1 style={{ color: '#000' }}>AI助教：一键总结视频与音频内容｜帮助解读的 AI 助手</h1>
                 </div>
                 <div className="header-right">
                     <a

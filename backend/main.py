@@ -15,6 +15,7 @@ import asyncio
 app = FastAPI()
 
 # 添加静态文件服务
+os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # 配置CORS
@@ -36,12 +37,12 @@ class TextRequest(BaseModel):
 async def upload_file(file: UploadFile = File(...)):
     global transcription_task
     try:
-        # 保存上传的文件
+        # 构造文件保存路径
         file_path = f"uploads/{file.filename}"
         os.makedirs("uploads", exist_ok=True)
         
         with open(file_path, "wb") as buffer:
-            content = await file.read()
+            content = await file.read() # 当前代码阻塞等待
             buffer.write(content)
         
         # 创建转录任务
@@ -81,7 +82,15 @@ async def get_summary(request: TextRequest):
         async for chunk in generate_summary(request.text):
             yield chunk
 
-    return StreamingResponse(generate(), media_type="text/plain")
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
 
 @app.post("/api/mindmap")
 async def get_mindmap(request: TextRequest):
