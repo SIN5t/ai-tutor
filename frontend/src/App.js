@@ -1426,17 +1426,18 @@ function App() {
         <Layout style={{ minHeight: '100vh', background: '#f0f2f5' }}>
             <div className="app-header" style={{ background: '#fff' }}>
                 <div className="title">
-                    <h1 style={{ color: '#000' }}>AI助教：一键总结视频与音频内容｜帮助解读的 AI 助手</h1>
+                    <h1 style={{ color: '#000' }}>AI助教：一键总结视频与音频内容</h1>
                 </div>
                 <div className="header-right">
                     <a
-                        href="https://github.com/Airmomo/VideoChat"
+                        href="https://github.com/SIN5t/ai-tutor"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="github-link"
                     >
                         <GithubOutlined />
-                        <span className="author-info">By Airmomo</span>
+                        <span className="author-info">By HuaweiChen 210
+                        </span>
                     </a>
                 </div>
                 <div className="upload-section">

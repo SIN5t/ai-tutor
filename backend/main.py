@@ -153,6 +153,7 @@ def generate_srt(transcription):
         srt_content += f"{i}\n{start} --> {end}\n{segment['text']}\n\n"
     return srt_content
 
+# {'start': 123.87, 'end': 125.41, 'text': '可以写上这个没问题'}
 def generate_txt(transcription):
     return "\n".join(segment['text'] for segment in transcription)
 
