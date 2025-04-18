@@ -1,9 +1,27 @@
 import logging
+import os
+from logging.handlers import RotatingFileHandler
 
 def init_log_config():
-    # 设置日志级别为 INFO（INFO 及以上级别都会输出）
-    logging.basicConfig(level=logging.INFO)
-
-    logging.debug("调试信息")  # 不会输出（低于 INFO）
-    logging.info("普通信息")   # 输出
-    logging.warning("警告信息")  # 输出
+    """初始化日志配置"""
+    # 确保日志目录存在
+    log_dir = "/var/log"
+    os.makedirs(log_dir, exist_ok=True)
+    
+    # 主日志配置
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(),  # 控制台输出
+            RotatingFileHandler(
+                filename=f'{log_dir}/app.log',
+                maxBytes=10 * 1024 * 1024,  # 10MB
+                backupCount=5
+            )
+        ]
+    )
+    
+    # 特别设置某些库的日志级别
+    logging.getLogger('httpx').setLevel(logging.WARNING)
+    logging.getLogger('uvicorn').setLevel(logging.INFO)

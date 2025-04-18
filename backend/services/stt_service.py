@@ -3,7 +3,7 @@ import logging
 import zhconv
 
 
-from backend.config import STT_CONFIG
+from config import STT_CONFIG
 from faster_whisper import WhisperModel
 
 model = WhisperModel(STT_CONFIG["whisper_model"])

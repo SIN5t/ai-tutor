@@ -1,0 +1,11 @@
+.git
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+test/
+config.template.py
+*.mp4
+*.log
+.env

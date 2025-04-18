@@ -1,3 +1,5 @@
+import logging
+from utils.log_config import init_log_config
 from fastapi import FastAPI, UploadFile, File, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
@@ -7,9 +9,9 @@ from typing import List
 import os
 import tempfile
 from datetime import datetime
-from backend.services.stt_service import transcribe_audio, stop_transcription, is_file_being_transcribed
-from backend.services.ai_service import generate_summary, generate_mindmap, chat_with_model, generate_detailed_summary
-from backend.models import ChatMessage, ChatRequest
+from services.stt_service import transcribe_audio, stop_transcription, is_file_being_transcribed
+from services.ai_service import generate_summary, generate_mindmap, chat_with_model, generate_detailed_summary
+from models import ChatMessage, ChatRequest
 import asyncio
 
 app = FastAPI()
@@ -32,6 +34,16 @@ transcription_task = None
 
 class TextRequest(BaseModel):
     text: str
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
+@app.on_event("startup")
+async def startup_event():
+    """应用启动时初始化日志"""
+    init_log_config()
+    logging.info("Application startup completed")
 
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):

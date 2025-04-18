@@ -1,8 +1,8 @@
 from openai import AsyncOpenAI
 import os
 from typing import List
-from backend.models import ChatMessage
-from backend.config import AI_CONFIG
+from models import ChatMessage
+from config import AI_CONFIG
 import json
 import logging as log
 
@@ -24,7 +24,6 @@ async def generate_summary(text: str):
     
     async for chunk in response:
         if chunk.choices[0].delta.content is not None:
-            log.warning(chunk.choices[0].delta.content)
             yield chunk.choices[0].delta.content
 
 async def generate_mindmap(text: str) -> str:
