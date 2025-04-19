@@ -2,7 +2,7 @@ from openai import AsyncOpenAI
 import os
 from typing import List
 from models import ChatMessage
-from config import AI_CONFIG
+from config.config import AI_CONFIG
 import json
 import logging as log
 

@@ -17,8 +17,8 @@ import asyncio
 app = FastAPI()
 
 # 添加静态文件服务
-os.makedirs("uploads", exist_ok=True)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# os.makedirs("uploads", exist_ok=True)
+# app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # 配置CORS
 app.add_middleware(

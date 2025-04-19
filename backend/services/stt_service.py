@@ -1,9 +1,9 @@
 import asyncio
 import logging
+from config.config import STT_CONFIG
 import zhconv
 
 
-from config import STT_CONFIG
 from faster_whisper import WhisperModel
 
 model = WhisperModel(STT_CONFIG["whisper_model"])
